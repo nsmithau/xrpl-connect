@@ -31,7 +31,7 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
 const baseVersion = String(pkg.version).split("-")[0];
 
 pkg.name = "@sigil137/xrpl-connect";
-pkg.version = `${baseVersion}-develop.${shortSha}`;
+pkg.version = `${baseVersion}-develop.${shortSha}.1`;
 pkg.publishConfig = {
   registry: "https://npm.pkg.github.com",
   access: "public",
@@ -66,12 +66,16 @@ function patchBundle(file) {
     return;
   }
   let text = fs.readFileSync(full, "utf8");
-  const amdBefore = (text.match(/define\(\["\.\//g) || []).length;
-  text = text.replace(/define\(\[("\.\/[^"]+")\]\s*,/g, "define([void 0 && $1],");
+  const amdBefore = (text.match(/define\.amd/g) || []).length;
+  // Drop AMD branches entirely so Turbopack never sees define([...]).
+  text = text.replace(
+    /typeof define\s*==\s*"function"\s*&&\s*define\.amd\s*\?\s*define\(\[[^\]]*\]\s*,\s*[A-Za-z_$][\w$]*\s*\)\s*:\s*/g,
+    "",
+  );
   text = text.replace(/new\s+(globalThis\?\.[A-Za-z0-9_]+)/g, "new ($1)");
-  const amdAfter = (text.match(/define\(\["\.\//g) || []).length;
+  const amdAfter = (text.match(/define\.amd/g) || []).length;
   fs.writeFileSync(full, text);
-  console.log(`✓ Patched ${file} (AMD relative defines ${amdBefore} → ${amdAfter})`);
+  console.log(`✓ Patched ${file} (define.amd refs ${amdBefore} → ${amdAfter})`);
 }
 
 patchBundle("xrpl-connect.mjs");
