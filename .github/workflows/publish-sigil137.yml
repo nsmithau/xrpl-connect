@@ -1,0 +1,44 @@
+name: Publish @sigil137/xrpl-connect
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+concurrency:
+  group: publish-sigil137-xrpl-connect
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://npm.pkg.github.com
+          scope: "@sigil137"
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build + finalize Sigil package
+        run: |
+          pnpm --filter xrpl-connect publish:build
+          node packages/xrpl-connect/scripts/sigil137-finalize-publish.mjs
+
+      - name: Publish to GitHub Packages
+        working-directory: packages/xrpl-connect/dist-publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm publish --access public
