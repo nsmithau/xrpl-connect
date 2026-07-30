@@ -41,4 +41,4 @@ jobs:
         working-directory: packages/xrpl-connect/dist-publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm publish --access public
+        run: npm publish --access public --tag develop
