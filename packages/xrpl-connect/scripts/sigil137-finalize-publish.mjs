@@ -31,7 +31,7 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
 const baseVersion = String(pkg.version).split("-")[0];
 
 pkg.name = "@sigil137/xrpl-connect";
-pkg.version = `${baseVersion}-develop.${shortSha}.1`;
+pkg.version = `${baseVersion}-develop.${shortSha}.2`;
 pkg.publishConfig = {
   registry: "https://npm.pkg.github.com",
   access: "public",
@@ -67,12 +67,20 @@ function patchBundle(file) {
   }
   let text = fs.readFileSync(full, "utf8");
   const amdBefore = (text.match(/define\.amd/g) || []).length;
-  // Drop AMD branches entirely so Turbopack never sees define([...]).
+  // Drop AMD branches that pass relative module ids (Turbopack TP1200).
   text = text.replace(
     /typeof define\s*==\s*"function"\s*&&\s*define\.amd\s*\?\s*define\(\[[^\]]*\]\s*,\s*[A-Za-z_$][\w$]*\s*\)\s*:\s*/g,
     "",
   );
-  text = text.replace(/new\s+(globalThis\?\.[A-Za-z0-9_]+)/g, "new ($1)");
+  // Turbopack rejects `new foo?.bar` / `new (foo?.bar)` — drop optional chain on ctor.
+  text = text.replace(
+    /new\s+\(globalThis\?\.([A-Za-z0-9_]+)\)/g,
+    "new (globalThis.$1)",
+  );
+  text = text.replace(
+    /new\s+globalThis\?\.([A-Za-z0-9_]+)/g,
+    "new (globalThis.$1)",
+  );
   const amdAfter = (text.match(/define\.amd/g) || []).length;
   fs.writeFileSync(full, text);
   console.log(`✓ Patched ${file} (define.amd refs ${amdBefore} → ${amdAfter})`);
