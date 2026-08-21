@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Sigil137 finalize step after `pnpm publish:build`.
+ * nsmithau finalize step after `pnpm publish:build`.
  *
- * - Renames the facade to @sigil137/xrpl-connect for GitHub Packages
+ * - Renames the facade to @nsmithau/xrpl-connect for GitHub Packages
  * - Pins a unique develop version (0.x.y-develop.<sha>)
  * - Neutralizes AMD define(["./…"]) so Next/Turbopack does not try to resolve
  *   crypto-js relative modules inside the rolled bundle
@@ -30,7 +30,7 @@ const shortSha = execSync("git rev-parse --short HEAD", {
 const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf8"));
 const baseVersion = String(pkg.version).split("-")[0];
 
-pkg.name = "@sigil137/xrpl-connect";
+pkg.name = "@nsmithau/xrpl-connect";
 pkg.version = `${baseVersion}-develop.${shortSha}.2`;
 pkg.publishConfig = {
   registry: "https://npm.pkg.github.com",
@@ -38,13 +38,13 @@ pkg.publishConfig = {
 };
 pkg.repository = {
   type: "git",
-  url: "git+https://github.com/sigil137/xrpl-connect.git",
+  url: "git+https://github.com/nsmithau/xrpl-connect.git",
 };
-pkg.homepage = "https://github.com/sigil137/xrpl-connect#readme";
+pkg.homepage = "https://github.com/nsmithau/xrpl-connect#readme";
 pkg.bugs = {
-  url: "https://github.com/sigil137/xrpl-connect/issues",
+  url: "https://github.com/nsmithau/xrpl-connect/issues",
 };
-pkg.sigil137 = {
+pkg.nsmithau = {
   upstream: "XRPL-Commons/xrpl-connect",
   ref: "develop",
   sha: shortSha,
@@ -88,4 +88,4 @@ function patchBundle(file) {
 
 patchBundle("xrpl-connect.mjs");
 patchBundle("xrpl-connect.umd.js");
-console.log("✓ Sigil137 finalize complete");
+console.log("✓ nsmithau finalize complete");

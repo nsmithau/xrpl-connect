@@ -1,4 +1,4 @@
-name: Publish @sigil137/xrpl-connect
+name: Publish @nsmithau/xrpl-connect
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: publish-sigil137-xrpl-connect
+  group: publish-nsmithau-xrpl-connect
   cancel-in-progress: false
 
 jobs:
@@ -26,16 +26,16 @@ jobs:
         with:
           node-version: 24
           registry-url: https://npm.pkg.github.com
-          scope: "@sigil137"
+          scope: "@nsmithau"
           cache: pnpm
 
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      - name: Build + finalize Sigil package
+      - name: Build + finalize package
         run: |
           pnpm --filter xrpl-connect publish:build
-          node packages/xrpl-connect/scripts/sigil137-finalize-publish.mjs
+          node packages/xrpl-connect/scripts/nsmithau-finalize-publish.mjs
 
       - name: Publish to GitHub Packages
         working-directory: packages/xrpl-connect/dist-publish
